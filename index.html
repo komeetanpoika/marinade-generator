@@ -163,7 +163,7 @@
       flex-shrink: 0;
     }
     .icard-name {
-      font-size: 13pt;
+      font-size: 16pt;
       font-weight: 800;
       font-variant: small-caps;
       letter-spacing: .04em;
@@ -177,17 +177,21 @@
       align-items: center;
     }
     .icard-ingredients {
-      font-size: 8pt;
-      color: #444;
-      line-height: 1.6;
+      font-size: 11pt;
+      color: #333;
+      line-height: 1.65;
       font-family: 'Segoe UI', system-ui, sans-serif;
+    }
+    .icard-ingredients strong {
+      color: #111;
+      font-weight: 700;
     }
 
     /* ── display cards ── */
     .scard {
       display: flex;
       flex-direction: column;
-      background: #181818;
+      background: #262626;
       overflow: hidden;
       border-top: 1px solid rgba(255,255,255,.05);
       min-height: 0;
@@ -199,41 +203,50 @@
       flex-shrink: 0;
     }
     .scard-body {
-      padding: 6mm 10mm 4mm;
+      padding: 4mm 10mm 2mm;
       flex: 1;
       display: flex;
       flex-direction: column;
-      justify-content: center;
+      justify-content: flex-end;
     }
     .scard-name {
-      font-size: 28pt;
+      font-size: 34pt;
       font-weight: 800;
       color: #ffffff;
       font-variant: small-caps;
       letter-spacing: .06em;
       line-height: 1.1;
-      margin-bottom: 3mm;
       font-family: 'Segoe UI', system-ui, sans-serif;
     }
+    .scard-tagline-section {
+      padding: 2mm 10mm 3mm;
+    }
     .scard-tagline {
-      font-size: 13pt;
-      color: rgba(255,255,255,.5);
+      font-size: 15pt;
+      color: rgba(255,255,255,.82);
       font-style: italic;
       line-height: 1.3;
       font-family: 'Segoe UI', system-ui, sans-serif;
     }
     .scard-footer {
-      padding: 4mm 10mm 5mm;
+      padding: 3mm 10mm 3mm;
       border-top: 1px solid rgba(255,255,255,.08);
       display: flex;
       align-items: center;
       gap: 4mm;
       flex-shrink: 0;
     }
-    .scard-emoji {
-      font-size: 20pt;
-      filter: grayscale(1) brightness(1.8);
-      opacity: .7;
+    .scard-allergens {
+      font-size: 9.5pt;
+      font-weight: 600;
+      color: rgba(255,255,255,.75);
+      letter-spacing: .02em;
+      flex: 1;
+      font-family: 'Segoe UI', system-ui, sans-serif;
+    }
+    .scard-allergens span {
+      color: rgba(255,255,255,.45);
+      font-weight: 400;
     }
     .scard-badges {
       margin-left: auto;
@@ -245,8 +258,8 @@
       font-weight: 700;
       padding: 1.5mm 3mm;
       border-radius: 2px;
-      background: rgba(255,255,255,.12);
-      color: rgba(255,255,255,.6);
+      background: rgba(255,255,255,.18);
+      color: rgba(255,255,255,.85);
       font-family: 'Segoe UI', system-ui, sans-serif;
     }
   </style>
@@ -283,6 +296,28 @@
 <div id="print-area"></div>
 
 <script>
+const ALLERGENS = [
+  { name: 'Gluteeni',    keys: ['mallasuute', 'ohra', 'vehnä', 'ruis', 'kaura', 'speltti'] },
+  { name: 'Äyriäiset',  keys: ['äyriäinen', 'katkarapu', 'hummeri', 'rapu'] },
+  { name: 'Munat',       keys: ['kananmuna', 'muna', 'albumiini'] },
+  { name: 'Kala',        keys: ['anjovis', 'sardiini', 'tonnikala', 'silakka'] },
+  { name: 'Maapähkinä',  keys: ['maapähkinä'] },
+  { name: 'Soija',       keys: ['soija'] },
+  { name: 'Maito',       keys: ['maito', 'laktoosi', 'hera', 'kaseiini', 'rasvajauhe'] },
+  { name: 'Pähkinät',    keys: ['pähkinä', 'manteli', 'cashew', 'pistaasi', 'pekaani'] },
+  { name: 'Selleri',     keys: ['selleri'] },
+  { name: 'Sinappi',     keys: ['sinappi'] },
+  { name: 'Seesami',     keys: ['seesami'] },
+  { name: 'Sulfiitit',   keys: ['sulfiitti', 'rikkidioksidi', 'e220', 'e221', 'e222', 'e223', 'e224', 'e225', 'e226', 'e227', 'e228'] },
+  { name: 'Lupiini',     keys: ['lupiini'] },
+  { name: 'Nilviäiset',  keys: ['nilviäinen', 'simpukka', 'osteri'] },
+];
+
+function detectAllergens(ingredients) {
+  const ing = ingredients.toLowerCase();
+  return ALLERGENS.filter(a => a.keys.some(k => ing.includes(k))).map(a => a.name);
+}
+
 const MEATS = {
   kana:      { label: "Kana",      icon: "🍗", color: "#d97706" },
   kala:      { label: "Kala",      icon: "🐟", color: "#2563eb" },
@@ -662,6 +697,13 @@ function deselectAll() { selected.clear(); render(); }
 function updateCount() { document.getElementById('selCount').textContent = `${selected.size} valittu`; }
 
 
+function highlightAllergens(ingredients) {
+  const allKeys = ALLERGENS.flatMap(a => a.keys);
+  allKeys.sort((a, b) => b.length - a.length);
+  const pattern = allKeys.map(k => k.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join('|');
+  return ingredients.replace(new RegExp(pattern, 'gi'), m => `<strong>${m}</strong>`);
+}
+
 function buildIngredientCards(items) {
   const pages = [];
   for (let i = 0; i < items.length; i += 6) {
@@ -672,7 +714,7 @@ function buildIngredientCards(items) {
           <div class="icard-name">${p.name}</div>
         </div>
         <div class="icard-body">
-          <div class="icard-ingredients">${p.ingredients}</div>
+          <div class="icard-ingredients">${highlightAllergens(p.ingredients)}</div>
         </div>
       </div>`).join('');
     pages.push(`<div class="print-page" style="--card-count:${chunk.length}">${cards}</div>`);
@@ -684,23 +726,26 @@ function buildDisplayCards(items) {
   const pages = [];
   for (let i = 0; i < items.length; i += 6) {
     const chunk = items.slice(i, i + 6);
-    const cards = chunk.map(p => `
+    const cards = chunk.map(p => {
+      const allergens = detectAllergens(p.ingredients);
+      const badges = [
+        ...(!allergens.includes('Maito')    ? ['<span class="scard-badge">Laktoositon</span>'] : []),
+        ...(!allergens.includes('Gluteeni') ? ['<span class="scard-badge">Gluteeniton</span>'] : []),
+      ].join('');
+      return `
       <div class="scard">
-        <div class="scard-stripe" style="background:${p.color}"></div>
         <div class="scard-body">
           <div class="scard-name">${p.name}</div>
+        </div>
+        <div class="scard-stripe" style="background:${p.color}"></div>
+        <div class="scard-tagline-section">
           <div class="scard-tagline">${p.tagline}</div>
         </div>
         <div class="scard-footer">
-          <div style="display:flex;gap:3mm">
-            ${p.suitableFor.map(k => { const m = MEATS[k]; return m ? `<span class="scard-emoji">${m.icon}</span>` : ''; }).join('')}
-          </div>
-          <div class="scard-badges">
-            <span class="scard-badge">Laktoositon</span>
-            <span class="scard-badge">Gluteeniton</span>
-          </div>
+          <div class="scard-badges">${badges}</div>
         </div>
-      </div>`).join('');
+      </div>`;
+    }).join('');
     pages.push(`<div class="print-page" style="--card-count:${chunk.length}">${cards}</div>`);
   }
   return pages.join('');
