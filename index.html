@@ -1,0 +1,722 @@
+<!DOCTYPE html>
+<html lang="fi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Kapteenin Kastikkeet – Tuotekorteikko</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Segoe UI', system-ui, sans-serif;
+      background: #f0f2f5;
+      color: #222;
+      min-height: 100vh;
+    }
+
+    header {
+      background: #1a2535;
+      color: #fff;
+      padding: 14px 24px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      align-items: center;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      box-shadow: 0 2px 8px rgba(0,0,0,.4);
+    }
+    header h1 { font-size: 1.2rem; font-weight: 700; letter-spacing: .5px; flex: none; }
+    header h1 span { color: #e8a020; }
+
+    .controls { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; flex: 1; }
+
+    input[type="search"] {
+      padding: 7px 12px; border: none; border-radius: 6px;
+      font-size: .9rem; min-width: 180px; background: #fff; color: #222;
+    }
+    select {
+      padding: 7px 10px; border: none; border-radius: 6px;
+      font-size: .9rem; background: #fff; color: #222; cursor: pointer;
+    }
+
+    .cat-tabs { display: flex; gap: 4px; }
+    .cat-tab {
+      padding: 6px 12px; border: 1.5px solid rgba(255,255,255,.25);
+      border-radius: 6px; font-size: .82rem; font-weight: 600;
+      cursor: pointer; background: transparent; color: rgba(255,255,255,.7);
+      transition: all .15s;
+    }
+    .cat-tab.active { background: #e8a020; border-color: #e8a020; color: #1a2535; }
+    .cat-tab:hover:not(.active) { border-color: rgba(255,255,255,.6); color: #fff; }
+
+    .btn {
+      padding: 7px 14px; border: none; border-radius: 6px;
+      font-size: .85rem; font-weight: 600; cursor: pointer;
+      white-space: nowrap; transition: opacity .15s;
+    }
+    .btn:hover { opacity: .85; }
+    .btn-primary { background: #e8a020; color: #1a2535; }
+    .btn-ghost  { background: rgba(255,255,255,.15); color: #fff; }
+    .selected-count { font-size: .85rem; color: #aac; white-space: nowrap; }
+
+    /* grid */
+    main {
+      padding: 20px 24px;
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+      gap: 18px;
+    }
+
+    .card {
+      background: #fff; border-radius: 10px; overflow: hidden;
+      box-shadow: 0 2px 6px rgba(0,0,0,.1); display: flex;
+      flex-direction: column; cursor: pointer;
+      transition: box-shadow .15s, transform .15s; position: relative;
+    }
+    .card:hover { box-shadow: 0 6px 18px rgba(0,0,0,.16); transform: translateY(-2px); }
+    .card.selected { outline: 3px solid #e8a020; }
+
+    .card-check {
+      position: absolute; top: 10px; right: 10px;
+      width: 22px; height: 22px; border-radius: 50%;
+      border: 2px solid rgba(255,255,255,.8);
+      background: rgba(255,255,255,.2);
+      display: flex; align-items: center; justify-content: center;
+      font-size: .9rem; transition: background .15s;
+    }
+    .card.selected .card-check { background: #e8a020; border-color: #e8a020; color: #fff; }
+
+    .card-header { padding: 14px 14px 10px; color: #fff; }
+    .card-cat-badge {
+      display: inline-block; font-size: .6rem; font-weight: 800;
+      letter-spacing: .8px; text-transform: uppercase;
+      background: rgba(255,255,255,.2); padding: 1px 6px;
+      border-radius: 3px; margin-bottom: 5px;
+    }
+    .card-name { font-size: 1.05rem; font-weight: 700; line-height: 1.3; margin-bottom: 4px; }
+    .card-tagline { font-size: .78rem; opacity: .88; font-style: italic; }
+
+    .card-body { padding: 12px 14px; flex: 1; display: flex; flex-direction: column; gap: 8px; }
+    .card-flavor { font-size: .82rem; color: #555; }
+    .card-flavor strong { color: #222; }
+
+    .card-ingredients {
+      font-size: .75rem; color: #666; line-height: 1.45;
+      border-top: 1px solid #f0f0f0; padding-top: 7px;
+    }
+    .card-ingredients strong { color: #444; display: block; margin-bottom: 2px; }
+
+    .meat-tags { display: flex; flex-wrap: wrap; gap: 4px; }
+    .meat-tag {
+      display: inline-flex; align-items: center; gap: 3px;
+      padding: 2px 8px; border-radius: 12px;
+      font-size: .72rem; font-weight: 600; color: #fff;
+    }
+
+    .card-footer {
+      padding: 8px 14px 12px; display: flex;
+      align-items: center; gap: 6px; flex-wrap: wrap;
+    }
+    .badge {
+      background: #eef6ee; color: #2a7a2a; border-radius: 4px;
+      padding: 2px 7px; font-size: .68rem; font-weight: 600; letter-spacing: .3px;
+    }
+    .badge.lak { background: #e8f4fb; color: #1a6a9a; }
+    .card-size { margin-left: auto; font-size: .75rem; color: #999; font-weight: 600; }
+
+    .no-results { grid-column: 1/-1; text-align: center; color: #999; padding: 60px 0; font-size: 1.1rem; }
+
+    /* print */
+    #print-area { display: none; }
+
+    @media print {
+      header, main, .no-results { display: none !important; }
+      #print-area { display: block !important; }
+      @page { size: A4; margin: 10mm; }
+
+      .print-page {
+        display: grid;
+        grid-template-rows: repeat(var(--card-count), 1fr);
+        width: 190mm;
+        height: 277mm;
+        break-after: page;
+      }
+      .print-page:last-child { break-after: auto; }
+    }
+
+    /* ── ingredient cards ── */
+    .icard {
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      border-top: 1px solid #e8e8e8;
+      min-height: 0;
+    }
+    .icard:first-child { border-top: none; }
+
+    .icard-header {
+      padding: 4mm 8mm 3mm;
+      color: #fff;
+      flex-shrink: 0;
+    }
+    .icard-name {
+      font-size: 13pt;
+      font-weight: 800;
+      font-variant: small-caps;
+      letter-spacing: .04em;
+      line-height: 1.2;
+      font-family: 'Segoe UI', system-ui, sans-serif;
+    }
+    .icard-body {
+      padding: 3mm 8mm 4mm;
+      flex: 1;
+      display: flex;
+      align-items: center;
+    }
+    .icard-ingredients {
+      font-size: 8pt;
+      color: #444;
+      line-height: 1.6;
+      font-family: 'Segoe UI', system-ui, sans-serif;
+    }
+
+    /* ── display cards ── */
+    .scard {
+      display: flex;
+      flex-direction: column;
+      background: #181818;
+      overflow: hidden;
+      border-top: 1px solid rgba(255,255,255,.05);
+      min-height: 0;
+    }
+    .scard:first-child { border-top: none; }
+
+    .scard-stripe {
+      height: 3px;
+      flex-shrink: 0;
+    }
+    .scard-body {
+      padding: 4mm 8mm 3mm;
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+    }
+    .scard-name {
+      font-size: 13pt;
+      font-weight: 800;
+      color: #ffffff;
+      font-variant: small-caps;
+      letter-spacing: .06em;
+      line-height: 1.2;
+      margin-bottom: 1.5mm;
+      font-family: 'Segoe UI', system-ui, sans-serif;
+    }
+    .scard-tagline {
+      font-size: 8pt;
+      color: rgba(255,255,255,.45);
+      font-style: italic;
+      line-height: 1.3;
+      font-family: 'Segoe UI', system-ui, sans-serif;
+    }
+    .scard-footer {
+      padding: 2mm 8mm 3mm;
+      border-top: 1px solid rgba(255,255,255,.08);
+      display: flex;
+      align-items: center;
+      gap: 3mm;
+      flex-shrink: 0;
+    }
+    .scard-emoji {
+      font-size: 11pt;
+      filter: grayscale(1) brightness(1.8);
+      opacity: .7;
+    }
+    .scard-badges {
+      margin-left: auto;
+      display: flex;
+      gap: 2mm;
+    }
+    .scard-badge {
+      font-size: 6.5pt;
+      font-weight: 700;
+      padding: 0.8mm 2mm;
+      border-radius: 2px;
+      background: rgba(255,255,255,.12);
+      color: rgba(255,255,255,.6);
+      font-family: 'Segoe UI', system-ui, sans-serif;
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <h1>Kapteenin <span>Kastikkeet</span></h1>
+  <div class="controls">
+    <div class="cat-tabs">
+      <button class="cat-tab active" onclick="setCat('')">Kaikki</button>
+      <button class="cat-tab" onclick="setCat('marinadi')">Marinadit</button>
+      <button class="cat-tab" onclick="setCat('oljy')">Mausteöljyt</button>
+    </div>
+    <input type="search" id="search" placeholder="Hae tuotteita…" oninput="render()">
+    <select id="meatFilter" onchange="render()">
+      <option value="">Kaikki lihat</option>
+      <option value="kana">🍗 Kana</option>
+      <option value="kala">🐟 Kala</option>
+      <option value="nauta">🥩 Nauta</option>
+      <option value="possu">🐷 Possu</option>
+      <option value="lammas">🐑 Lammas</option>
+      <option value="riista">🦌 Riista</option>
+      <option value="kasvikset">🥦 Kasvikset</option>
+    </select>
+    <button class="btn btn-ghost" onclick="selectAll()">Valitse kaikki</button>
+    <button class="btn btn-ghost" onclick="deselectAll()">Poista valinnat</button>
+    <span class="selected-count" id="selCount">0 valittu</span>
+    <button class="btn btn-primary" onclick="generatePDF()">🖨️ Tulosta / PDF</button>
+  </div>
+</header>
+
+<main id="grid"></main>
+<div id="print-area"></div>
+
+<script>
+const MEATS = {
+  kana:      { label: "Kana",      icon: "🍗", color: "#d97706" },
+  kala:      { label: "Kala",      icon: "🐟", color: "#2563eb" },
+  nauta:     { label: "Nauta",     icon: "🥩", color: "#b91c1c" },
+  possu:     { label: "Possu",     icon: "🐷", color: "#be185d" },
+  lammas:    { label: "Lammas",    icon: "🐑", color: "#7c3aed" },
+  riista:    { label: "Riista",    icon: "🦌", color: "#166534" },
+  kasvikset: { label: "Kasvikset", icon: "🥦", color: "#15803d" },
+  siivet:    { label: "Siivet",    icon: "🍗", color: "#d97706" },
+  wok:       { label: "Wok",       icon: "🥘", color: "#0f766e" },
+};
+
+const products = [
+  // ── MARINADIT ──
+  {
+    id: 1, category: "marinadi", name: "Appelsiinimarinadi", size: "10 kg", color: "#c2700a",
+    tagline: "Raikas ja luonnollinen appelsiinin maku!",
+    flavor: "Raikas sitrus, appelsiini, mustapippuri, kirveli",
+    suitableFor: ["kana","kala","possu","siivet","wok"],
+    ingredients: "Vesi, appelsiinitäyte, appelsiinikuorirouhe, suola (4,3%), appelsiinimehu, sitruunamehu, mausteet (mustapippuri, kirveli), paprikarouhe, aromi, sakeuttamisaineet (E412, E415), väri (E100, E160c), säilöntäaineet (E202, E211)",
+  },
+  {
+    id: 2, category: "marinadi", name: "Fantasiamarinadi", size: "10 kg", color: "#b45309",
+    tagline: "Koko maustekaappi yhdessä marinadissa! Yrtit, chili ja sitruuna nousevat esiin.",
+    flavor: "Yrtit, chili, sitruuna, monimuotoiset mausteet",
+    suitableFor: ["kana","possu"],
+    ingredients: "Vesi, rypsiöljy, tomaattikastike, sinappi, sitruunamehu, mausteet (paprika, sipuli, valkosipuli, mustapippuri, cayanne, chili, juustokumina, korianteri, curry, pomeranssi, kurkuma, viherpippuri, basilika, oregano, valkopippuri, laakerinlehti, rakuuna, kirveli, persilja), sokeri, omenaviinietikka, suola (3,2 %), ananasmehu, maltodekstriini, hiivauute, sakeutusaineet (E412, E415), sitruunahappo, säilöntäaineet (E202, E211)",
+  },
+  {
+    id: 3, category: "marinadi", name: "Habaneromarinadi", size: "10 kg", color: "#b91c1c",
+    tagline: "Herkullinen ja oikeasti tulinen marinadi!",
+    flavor: "Tulinen habanero, paprika, curry, chili",
+    suitableFor: ["kana","nauta","possu","siivet"],
+    ingredients: "Vesi, rypsiöljy, habaneromurska, sinappi, tomaattikastike, hunajaetikka, ananasmehu, mausteet (paprika, valkosipuli, sipuli, curry, korianteri, kurkuma, cayanne, neilikka, valkopippuri, laakerinlehti, kirveli, rakuuna, persilja, mustapippuri, viherpippuri, chili), sokeri, maltodekstriini, hiivauute, suola (4,7%), chilirouhe, sakeutusaineet (E412, E415), sitruunahappo, säilöntäaineet (E202, E211), väri (E160c), aromi",
+  },
+  {
+    id: 4, category: "marinadi", name: "Hunaja-Pippurimarinadi", size: "10 kg", color: "#b45309",
+    tagline: "Pippuriseoksella maustettu ja hunajalla makeutettu voimakas marinadi.",
+    flavor: "Hunaja, mustapippuri, sinappi, valkosipuli, curry",
+    suitableFor: ["kana","possu","siivet"],
+    ingredients: "Vesi, rypsiöljy, sinappi, ketsuppi, hunajaetikka, suola (2,8 %), soijakastike, mausteet (valkosipuli, paprika, curry, korianteri, mustapippuri, valkopippuri, laakerinlehti, kirveli, rakuuna, persilja, kurkuma, cayanne, neilikka, viherpippuri, chili), maltodekstriini, hiivauute, sokeri, säilöntäaineet (E202, E211), sakeuttamisaineet (E412, E415), sitruunahappo, paprikauute, aromi",
+  },
+  {
+    id: 5, category: "marinadi", name: "Hunaja-Valkosipulimarinadi", size: "10 kg", color: "#92400e",
+    tagline: "Vahvasti valkosipulia sisältävä, hunajalla makeutettu marinadi",
+    flavor: "Vahva valkosipuli, hunaja, curry, paprika, chili",
+    suitableFor: ["kana","possu"],
+    ingredients: "Vesi, rypsiöljy, sinappi, ketsuppi, hunajaetikka, suola (2,8 %), mausteet (valkosipuli, paprika, curry, korianteri, mustapippuri, valkopippuri, laakerinlehti, kirveli, rakuuna, persilja, kurkuma, cayanne, neilikka, viherpippuri, chili), maltodekstriini, hiivauute, sokeri, säilöntäaineet (E202, E211), sakeuttamisaineet (E412, E415), sitruunahappo, paprikauute, aromi",
+  },
+  {
+    id: 6, category: "marinadi", name: "Hunajainen Kalamarinadi", size: "10 kg", color: "#1d4ed8",
+    tagline: "Hunajalla makeutettu sekä tilliä ja sitruunapippurilla maustettu marinadi.",
+    flavor: "Hunaja, tilli, sitruunapippuri, paprika",
+    suitableFor: ["kala"],
+    ingredients: "Vesi, rypsiöljy, sinappi, hunajaetikka, ketsuppi, mausteet (mustapippuri, sipuli, tilli, ruohosipuli, paprika, curry, korianteri, kurkuma, cayanne, neilikka, valkopippuri, laakerinlehti, kirveli, rakuuna, persilja), suola (3,9%), sitruunamehu, chilikastike, maltodekstriini, hiivauute, sokeri, sakeuttamisaineet (E412, E415), säilöntäaineet (E202, E211), paprikauute, aromi",
+  },
+  {
+    id: 7, category: "marinadi", name: "Juhlamarinadi", size: "10 kg", color: "#1e293b",
+    tagline: "Tumma, täyteläinen ja maukas marinadi.",
+    flavor: "Soija, valkosipuli, paprika, curry – tumma ja täyteläinen",
+    suitableFor: ["lammas","nauta","possu","riista"],
+    ingredients: "Rypsiöljy, soijakastike, vesi, sinappi, suola (4,5 %), mausteet (valkosipuli, paprika, curry, korianteri, kurkuma, cayanne, neilikka, valkopippuri, laakerinlehti, kirveli, rakuuna, persilja, mustapippuri, viherpippuri, chili), maltodekstriini, hiivauute, sokeri, sakeuttamisaineet (E412, E415), säilöntäaineet (E202, E211), paprikauute, sitruunahappo, aromi",
+  },
+  {
+    id: 8, category: "marinadi", name: "Kapteenin Kalamarinadi", size: "5 kg", color: "#1e40af",
+    tagline: "Reilusti maustettu (mm. sitruunapippuri ja tilli) marinadi.",
+    flavor: "Sitruunapippuri, tilli, sinappi, valkosipuli",
+    suitableFor: ["kala"],
+    ingredients: "Vesi, rypsiöljy, sinappi, ketsuppi, suola (4,3 %), mausteet (tilli, mustapippuri, sipuli, ruohosipuli, valkosipuli, paprika, curry, korianteri, kurkuma, cayanne, neilikka, valkopippuri, laakerinlehti, kirveli, rakuuna, persilja, viherpippuri, chili), sitruunamehu, chilikastike, maltodekstriini, hiivauute, sokeri, sakeuttamisaineet (E412, E415), sitruunahappo, säilöntäaineet (E202, E211), paprikauute, aromi",
+  },
+  {
+    id: 9, category: "marinadi", name: "Kapteenin Nautamarinadi", size: "10 kg", color: "#991b1b",
+    tagline: "Mainio perusmarinadi naudalle",
+    flavor: "Punaviini, punaviinietikka, paprika, curry, valkosipuli",
+    suitableFor: ["nauta"],
+    ingredients: "Vesi, ketsuppi, rypsiöljy, suola (5,0 %), punaviinietikka, punaviinitiiviste, mausteet (mustapippuri, kirveli, persilja, valkosipuli, cayanne, paprika, curry, korianteri, valkopippuri, kurkuma, neilikka, viherpippuri, laakerinlehti, rakuuna, chili), soijakastike, maltodekstriini, hiivauute, sokeri, sakeuttamisaineet (E412, E415), säilöntäaineet (E202, E211), sitruunahappo, paprikauute, aromi",
+  },
+  {
+    id: 10, category: "marinadi", name: "Kapteenin Possumarinadi", size: "10 kg", color: "#9d174d",
+    tagline: "Makeahko perusmarinadi possulle",
+    flavor: "Makea, hunaja, paprika, curry, sinappi",
+    suitableFor: ["possu"],
+    ingredients: "Rypsiöljy, vesi, sinappi, hunajaetikka, ketsuppi, soijakastike, punaviinietikka, mausteet (paprika, curry, korianteri, valkosipuli, kurkuma, cayanne, neilikka, valkopippuri, laakerinlehti, kirveli, rakuuna, persilja, mustapippuri, viherpippuri, chili), suola (3,2 %), maltodekstriini, hiivauute, sokeri, sakeutusaineet (E412, E415), säilöntäaineet (E202, E211), sitruunahappo, paprikauute, aromi",
+  },
+  {
+    id: 11, category: "marinadi", name: "Kirkas Yrtti-Punaviinimarinadi", size: "10 kg", color: "#6b21a8",
+    tagline: "Kirkas, öljytön marinadi.",
+    flavor: "Punaviini 10%, yrtit, paprika, kirveli, kurkuma",
+    suitableFor: ["nauta"],
+    ingredients: "Vesi, tomaattikastike, punaviini (10%), hunajaetikka, suola (4,6 %), mausteet (paprika, mustapippuri, persilja, kirveli, curry, laakerinlehti, valkopippuri, korianteri, valkosipuli, kurkuma, cayanne, neilikka, rakuuna), maltodekstriini, hiivauute, sokeri, paprikarouhe, sakeutusaineet (E412, E415), paprikauute, säilöntäaineet (E202, E211), sitruunahappo",
+  },
+  {
+    id: 12, category: "marinadi", name: "Konjakki-Marinadi", size: "10 kg", color: "#78350f",
+    tagline: "Hieno ja aromikas marinadi. Valmistuksessa käytetty aitoa konjakkia.",
+    flavor: "Konjakkia 1,6%, paprika, pippuri, sinappi",
+    suitableFor: ["kala","nauta","possu","riista"],
+    ingredients: "Vesi, rypsiöljy, sinappi, ketsuppi, soijakastike, suola (3,8 %), siirappi, konjakki (1,6 %), mausteet (valkosipuli, paprika, mustapippuri, valkopippuri, viherpippuri, chili, curry, korianteri, kurkuma, cayanne, neilikka, laakerinlehti, kirveli, rakuuna, persilja), maltodekstriini, hiivauute, sokeri, sitruunahappo, säilöntäaineet (E202, E211), paprikauute, sakeuttamisaineet (E412, E415), aromi",
+  },
+  {
+    id: 13, category: "marinadi", name: "Makean Chilinen Marinadi", size: "10 kg", color: "#c2410c",
+    tagline: "Siiville kehitetty, ei lainkaan hapan marinadikastike. Herkullisen makea ja lempeä chilisyys sopii myös possun marinointiin.",
+    flavor: "Makea, lempeä chili, paprika, chipotle",
+    suitableFor: ["kana","possu","siivet"],
+    ingredients: "Vesi, tomaattisose, sokeri, rypsiöljy, suola (3,9 %), tomaattijauhe, mausteet (paprika, chipotle, cayanne), sakeuttamisaineet (E412, E4215), sitruunahappo, säilöntäaineet (E202, E211), väri (E160c)",
+  },
+  {
+    id: 14, category: "marinadi", name: "Marinointi- ja Grillauskastike", size: "10 kg", color: "#166534",
+    tagline: "Suosittu perusmarinadi",
+    flavor: "Paprika, curry, valkosipuli, sinappi, soija",
+    suitableFor: ["nauta","possu"],
+    ingredients: "Vesi, rypsiöljy, sinappi, soijakastike, ketsuppi, suola (3,3 %), mausteet (paprika, curry, korianteri, valkosipuli, kurkuma, cayanne, neilikka, valkopippuri, laakerinlehti, kirveli, rakuuna, persilja, mustapippuri, viherpippuri, chili), maltodekstriini, hiivauute, sokeri, sakeuttamisaineet (E412, E415), sitruunahappo, säilöntäaineet (E202, E211), paprikauute, aromi",
+  },
+  {
+    id: 15, category: "marinadi", name: "Meksikaanin Marinadi", size: "10 kg", color: "#b45309",
+    tagline: "Tässä marinadissa on makua! Yhdistelmä Meksikon yrttejä, chiliä ja hapokkuutta!",
+    flavor: "Chili, paprika, valkosipuli, oregano, kumina, cayanne",
+    suitableFor: ["kana","possu","siivet"],
+    ingredients: "Vesi, rypsiöljy, sokeri, mausteet (chili, paprika, valkosipuli, mustapippuri, oregano), suola (4,0 %), ketsuppi, sakeutusaineet (E412, E415), säilöntäaineet (E202, E211), sorbitoli, sitruunahappo, natriumsitraatti, natriumglutamaatti, aromit (paprika, valkosipuli, cayanne, muskottipähkinä, korianteri, kumina)",
+  },
+  {
+    id: 16, category: "marinadi", name: "Paholaisen Marinadi", size: "10 kg", color: "#be123c",
+    tagline: "Makea ja lempeä, saanut inspiraationsa paljon paprikaa sisältävästä hillosta. Tässäkään ei ole paprikaa ja makeutta säästelty!",
+    flavor: "Makea paprika, habanero, punaviinietikka",
+    suitableFor: ["kana","kala","possu","siivet","wok"],
+    ingredients: "Vesi, tomaattikastike, sokeri, punaviinietikka, paprikarouhe, mausteet (paprika, mustapippuri, persilja, kirveli, curry, laakerinlehti, valkopippuri, korianteri, valkosipuli, kurkuma, cayanne, neilikka, rakuuna), maltodekstriini, hiivauute, sakeutusaineet (E412, E415), säilöntäaineet (E202, E211), sitruunamehu, habaneropyre, suola (4,2 %), väri (E160c)",
+  },
+  {
+    id: 17, category: "marinadi", name: "Panimomestarin Marinadi", size: "10 kg", color: "#713f12",
+    tagline: "Melko tumma, maltaalla ja paahdetulla sipulilla maustettu hieno marinadi.",
+    flavor: "Mallasuute, paahdettu sipuli, pippuri, paprika",
+    suitableFor: ["nauta","possu"],
+    ingredients: "Vesi, rypsiöljy, sinappi, soijakastike, ketsuppi, mallasuute, suola (3,8 %), mausteet (mustapippuri, paprika, curry, korianteri, valkosipuli, kurkuma, cayanne, neilikka, valkopippuri, laakerinlehti, kirveli, rakuuna, persilja, viherpippuri, chili), paahdettu sipuli, maltodekstriini, hiivauute, sokeri, sakeuttamisaineet (E412, E415), sitruunahappo, säilöntäaineet (E202, E211), paprikauute, aromi",
+  },
+  {
+    id: 18, category: "marinadi", name: "Pekoni-Sipulimarinadi", size: "10 kg", color: "#7c2d12",
+    tagline: "Aidolla pekonilla ja runsaalla määrällä sipulia maustettu marinadi.",
+    flavor: "Pekoni, paahdettu sipuli, valkosipuli, mustapippuri",
+    suitableFor: ["kala","kana","nauta","possu"],
+    ingredients: "Vesi, rypsiöljy, sinappi, ketsuppi, hunajaetikka, suola (3,4%), paahdettu sipuli, mausteet (valkosipuli, mustapippuri), pekoni, aromit (pekoni), sakeutusaineet (E412, E415), sitruunahappo, rasvajauhe, säilöntäaineet (E202, E211), paprikauute",
+  },
+  {
+    id: 19, category: "marinadi", name: "Pestomarinadi", size: "10 kg", color: "#166534",
+    tagline: "Yrttinen ja oikeasti pestolta maistuva marinadi!",
+    flavor: "Basilika, valkosipuli, mustapippuri, punaviinietikka",
+    suitableFor: ["kana","kala","possu"],
+    ingredients: "Vesi, rypsiöljy, sokeri, punaviinietikka, suola (3,9 %), mausteet (basilika, valkosipuli, mustapippuri), sakeutusaineet (E412, E415), säilöntäaineet (E202, E211), väri (E140), aromi",
+  },
+  {
+    id: 20, category: "marinadi", name: "Punaviini-Pippurimarinadi", size: "10 kg", color: "#6b21a8",
+    tagline: "Pippurilla ja aidolla punaviinillä maustettu marinadi.",
+    flavor: "Punaviini 10%, mustapippuri, viherpippuri, paprika",
+    suitableFor: ["nauta","riista"],
+    ingredients: "Vesi, ketsuppi, rypsiöljy, punaviini (10 %), suola (4,4 %), mausteet (mustapippuri, viherpippuri, paprika, curry, korianteri, valkosipuli, kurkuma, cayanne, neilikka, valkopippuri, laakerinlehti, kirveli, rakuuna, persilja, chili), punaviinietikka, maltodekstriini, hiivauute, sokeri, sakeuttamisaineet (E412, E415), säilöntäaineet (E202, E211), sitruunahappo, paprikauute, aromi",
+  },
+  {
+    id: 21, category: "marinadi", name: "Sitruuna-Tilli-Kalamarinadi", size: "10 kg", color: "#0369a1",
+    tagline: "Tuttu suosittu marinadimme. Sopii kalalle kuin kalalle.",
+    flavor: "Sitruuna, tilli, paprika, kurkuma",
+    suitableFor: ["kala"],
+    ingredients: "Vesi, rypsiöljy, dekstroosi, sokeri, maltodekstriini, suola (3,9 %), mausteet (tilli, kurkuma, paprika), sakeuttamisaineet (E412, E4215), säilöntäaineet (E202, E211), sitruunahappo, sitruunajauhe, aromit, paprikauute",
+  },
+  {
+    id: 22, category: "marinadi", name: "Soija-Valkosipulimarinadi", size: "10 kg", color: "#1e293b",
+    tagline: "Tumma, vahvasti valkosipulilla maustettu, makea marinadi",
+    flavor: "Soija, valkosipuli, siirappi, curry – tumma ja intensiivinen",
+    suitableFor: ["lammas","nauta","possu"],
+    ingredients: "Rypsiöljy, vesi, soijakastike, sinappi, siirappi, suola (4,1 %), mausteet (valkosipuli, paprika, curry, korianteri, kurkuma, cayanne, neilikka, valkopippuri, laakerinlehti, kirveli, rakuuna, persilja, mustapippuri, viherpippuri, chili), maltodekstriini, hiivauute, sokeri, säilöntäaineet (E202, E211), sakeuttamisaineet (E412, E415), sitruunahappo, paprikauute, aromi",
+  },
+  {
+    id: 23, category: "marinadi", name: "Soosikeisarin Marinadi", size: "10 kg", color: "#c2410c",
+    tagline: "Itse 'Kapteenin' eli firman päällepäsmärin oma marinadi: Buffalo wings -kastikkeen maut marinadissa! Mukavasti chiliä ja hitunen homejuuston aromia.",
+    flavor: "Chili, homejuuston aromi, omenaviinietikka, makea",
+    suitableFor: ["kana","possu","siivet"],
+    ingredients: "Vesi, rypsiöljy, omenaviinietikka, chilikastike, sokeri, suola (4,3 %), sakeutusaineet (E412, E415), säilöntäaineet (E202, E211), aromi, väri (E160c)",
+  },
+  {
+    id: 24, category: "marinadi", name: "Tumma BBQ-Marinadi", size: "10 kg", color: "#111827",
+    tagline: "Kevyt, erittäin tumma, savuaromilla maustettu, makeahko marinadi",
+    flavor: "Savu, makea, tomaatti, paprika, sipuli, valkosipuli",
+    suitableFor: ["kana","nauta","possu"],
+    ingredients: "Vesi, sokeri, tomaattijauhe, punaviinietikka, suola (3,9%), mausteet (paprika, chili, sipuli, valkosipuli), sokerikulööri, sakeutusaine (E415, E412), säilöntäaineet (E211, E202), aromi",
+  },
+  {
+    id: 25, category: "marinadi", name: "Viski-Pippuri by Hard Kokki", size: "10 kg", color: "#78350f",
+    tagline: "Aivan käsittämättömän hyvä uutuusmarinadi!",
+    flavor: "Viski 2%, mustapippuri, balsamico, chipotle, yrtit",
+    suitableFor: ["possu"],
+    ingredients: "Vesi, rypsiöljy, sinappi, tomaattikastike, soijakastike, mausteet (mustapippuri, paprika, curry, korianteri, valkosipuli, timjami, kurkuma, cayanne, neilikka, valkopippuri, chipotle, yrtit), balsamico, viski (2%), sokeri, suola (3,2%), paahdettu sipulirouhe, maltodekstriini, hiivauute, säilöntäaineet (E202, E211), sakeuttamisaineet (E412, E415), happamuudensäätöaine (E330)",
+  },
+
+  // ── MAUSTEÖLJYT ──
+  {
+    id: 26, category: "oljy", name: "Amiraalin Mausteöljy", size: "9 kg", color: "#0f766e",
+    tagline: "Hienostunut ja sopivan erikoinen mausteöljy.",
+    flavor: "Fenkoli, anis, rakuuna, kurkuma",
+    suitableFor: ["kana","kala","nauta","possu","wok"],
+    ingredients: "Rypsiöljy, osittain kovetettu rypsiöljy, sokeri, suola (6,1%), mausteet (fenkoli, rakuuna, anis, kurkuma)",
+  },
+  {
+    id: 27, category: "oljy", name: "Balsamico-Mausteöljy", size: "9 kg", color: "#4c1d95",
+    tagline: "Hienostunut Balsamico.",
+    flavor: "Balsamico 12%, mustapippuri, minttu, rakuuna",
+    suitableFor: ["nauta","riista","possu"],
+    ingredients: "Rypsiöljy, osittain kovetettu rypsiöljy, balsamico (12 %), suola (7,5%), mausteet (mustapippuri, minttu, rakuuna, persilja, kirveli, ruohosipuli)",
+  },
+  {
+    id: 28, category: "oljy", name: "Chiliöljy", size: "9 kg", color: "#b91c1c",
+    tagline: "Suosittu tulinen öljymme on oikeasti tulinen!",
+    flavor: "Habanero, paprika, cayanne – aidosti tulinen",
+    suitableFor: ["kana","nauta","possu","siivet","wok"],
+    ingredients: "Rypsiöljy, osittain kovetettu rypsiöljy, habaneromurska, paprikarouhe, sokeri, omenaviinietikka, mausteet (paprika, cayanne)",
+  },
+  {
+    id: 29, category: "oljy", name: "Chimichurri-Mausteöljy", size: "9 kg", color: "#166534",
+    tagline: "Etelä-Amerikkalainen suosikkimauste lihalle nyt mausteöljynä!",
+    flavor: "Hapokas ja yrttinen: persilja, korianteri, oregano, chili, valkosipuli",
+    suitableFor: ["kana","nauta","possu","wok"],
+    ingredients: "Rypsiöljy, osittain kovetettu rypsiöljy, punaviinietikka, ruokosokeri, suola (5,9%), paprikarouhe, mausteet (persilja, ruohosipuli, korianteri, oregano, rakuuna), chilirouhe, valkosipulirouhe, väri (E140)",
+  },
+  {
+    id: 30, category: "oljy", name: "Grilliöljy", size: "9 kg", color: "#92400e",
+    tagline: "Amerikkalaistyyppinen BBQ-mausteinen pintamausteöljy",
+    flavor: "BBQ, sinapinsiemen, paprika, cayanne, mustapippuri – suolaton",
+    suitableFor: ["kala","kana","nauta","possu","wok"],
+    ingredients: "Rypsiöljy, osittain kovetettu rypsiöljy, mausteet (mustapippuri, sinapinsiemen, paprika, cayanne), paprikarouhe, aromi (BBQ)",
+  },
+  {
+    id: 31, category: "oljy", name: "Janne Katajan Mausteöljy", size: "9 kg", color: "#b45309",
+    tagline: "Aivan tolkuttoman hyvä mausteöljy!",
+    flavor: "Sipuli, valkosipuli, chili, basilika, mustapippuri, kirveli, hunajaetikka",
+    suitableFor: ["kana","lammas","nauta","possu","riista","wok"],
+    ingredients: "Rypsiöljy, osittain kovetettu rypsiöljy, hunajaetikka, mausteet (sipuli, valkosipuli, chili, basilika, ruohosipuli, mustapippuri, maustepippuri, kirveli, persilja), suola (5,5%)",
+  },
+  {
+    id: 32, category: "oljy", name: "Karibian Jerk BBQ -öljy", size: "9 kg", color: "#c2410c",
+    tagline: "Karibian maut: valkosipuli, inkivääri, chili, kaneli, timjami. Älä pelästy! Kaneli sopii muuhunkin kuin pullaan.",
+    flavor: "Valkosipuli, inkivääri, chili, kaneli, timjami, sitruuna, omenaviinietikka",
+    suitableFor: ["kala","kana","lammas","nauta","possu","wok"],
+    ingredients: "Rypsiöljy, osittain kovetettu rypsiöljy, soijakastike, mausteet (valkosipuli, inkivääri, chili, kaneli, timjami), omenaviinietikka, sokeri, suola (6,1%), sitruuna",
+  },
+  {
+    id: 33, category: "oljy", name: "Lihamausteöljy", size: "9 kg", color: "#7c2d12",
+    tagline: "Grillausmausteinen öljy",
+    flavor: "Valkosipuli, paprika, curry, mustapippuri, korianteri, BBQ-aromi",
+    suitableFor: ["kana","nauta","possu","siivet","wok"],
+    ingredients: "Rypsiöljy, osittain kovetettu rypsiöljy, suola (3,7 %), mausteet (valkosipuli, paprika, curry, mustapippuri, valkopippuri, korianteri, kurkuma, cayanne, neilikka, laakerinlehti, kirveli, rakuuna, persilja, viherpippuri, chili), maltodekstriini, hiivauute, sokeri, sitruunahappo, paprikauute, aromit (BBQ, kurkuma)",
+  },
+  {
+    id: 34, category: "oljy", name: "Löytöretken Mausteöljy", size: "9 kg", color: "#1e40af",
+    tagline: "Eurooppalaisille tutut yrtit yhdistettynä maailman mausteisiin. Kaikkien lihojen ja kanan maustamiseen!",
+    flavor: "Valkosipuli, paprika, persilja, rakuuna, curry, mustapippuri, korianteri",
+    suitableFor: ["nauta","possu","kana","siivet","wok"],
+    ingredients: "Rypsiöljy, osittain kovetettu rypsiöljy, maustesekoitus (valkosipuli, paprika, persilja, rakuuna, kirveli, ruohosipuli, kurkuma, mustapippuri, curry, valkopippuri, korianteri, cayanne, neilikka, viherpippuri, laakerinlehti, chili), chili- ja paprikajauhe, suola (3,4%), sokeri, maltodekstriini, hiivauute, sitruunahappo, aromit",
+  },
+  {
+    id: 35, category: "oljy", name: "Minttuöljy", size: "9 kg", color: "#065f46",
+    tagline: "Sopivasti mintun makuinen öljy lampaalle ja muille vahvoille lihoille.",
+    flavor: "Minttu, mustapippuri, valkosipuli, kurkuma – suolaton",
+    suitableFor: ["lammas","riista"],
+    ingredients: "Rypsiöljy, osittain kovetettu rypsiöljy, mausteet (minttu, mustapippuri, valkosipuli), sokeri, aromi (minttu), kurkumauute",
+  },
+  {
+    id: 36, category: "oljy", name: "Punaviiniöljy", size: "9 kg", color: "#6b21a8",
+    tagline: "Täyteläinen punaviiniöljy maustaa erityisen hyvin naudan ja riistan.",
+    flavor: "Punaviini 12%, punaviinietikka, paprika, mustapippuri, persilja, valkosipuli",
+    suitableFor: ["nauta","riista"],
+    ingredients: "Rypsiöljy, osittain kovetettu rypsiöljy, punaviini (12%), mausteet (paprika, mustapippuri, persilja, ruohosipuli, kirveli, rakuuna, cayanne, valkosipuli), suola (4,2%), sokeri, punaviinietikka, paprikarouhe (punainen ja vihreä), chilirouhe, aromi",
+  },
+  {
+    id: 37, category: "oljy", name: "Rosmariiniöljy", size: "9 kg", color: "#166534",
+    tagline: "Hieno rosmariiniyrttinen öljy. Sopii esimerkiksi lampaalle, naudalle ja kanalle.",
+    flavor: "Rosmariini, valkosipuli, sipuli, mustapippuri, timjami",
+    suitableFor: ["lammas","nauta","kana","possu","riista"],
+    ingredients: "Rypsiöljy, osittain kovetettu rypsiöljy, soijakastike, mausteet (rosmariini, valkosipuli, sipuli, mustapippuri, timjami), sokeri, suola (6,2 %)",
+  },
+  {
+    id: 38, category: "oljy", name: "Savu-Paprikaöljy", size: "9 kg", color: "#7c2d12",
+    tagline: "Savuinen ja maistuva, kaikelle lihalle",
+    flavor: "Savuinen paprika, cayanne, valkosipuli, chili, mustapippuri",
+    suitableFor: ["kana","nauta","possu","siivet","wok"],
+    ingredients: "Rypsiöljy, osittain kovetettu rypsiöljy, suola (4,6 %), mausteet (paprika, mustapippuri, cayanne, valkosipuli), ruokosokeri, paprikarouhe (punainen ja vihreä), chilirouhe, aromi",
+  },
+  {
+    id: 39, category: "oljy", name: "Turkinpippuriöljy", size: "9 kg", color: "#92400e",
+    tagline: "Makeahko turkinpippurikaramellinen grillausöljy kaikille lihoille",
+    flavor: "Makea, karamellimainen, turkinpippuri, paprika, lakritsin aromi",
+    suitableFor: ["kana","nauta","possu","riista","siivet","wok"],
+    ingredients: "Rypsiöljy, osittain kovetettu rypsiöljy, siirappi, mausteet (mustapippuri, paprika, cayanne), suola (4%), aromi (lakritsi)",
+  },
+  {
+    id: 40, category: "oljy", name: "Valkosipuli-Paprikaöljy", size: "9 kg", color: "#b45309",
+    tagline: "Mausteena reilusti valkosipulia",
+    flavor: "Valkosipulirouhe, paprikarouhe – reilusti valkosipulia, suolaton",
+    suitableFor: ["kana","kala","nauta","possu","wok"],
+    ingredients: "Rypsiöljy, osittain kovetettu rypsiöljy, valkosipulirouhe (+ vesi, omenaviinietikka), sokeri, paprikarouhe",
+  },
+  {
+    id: 41, category: "oljy", name: "Yrttiöljy", size: "9 kg", color: "#166534",
+    tagline: "Sisältää runsaasti yrttejä ja yrttiaromia.",
+    flavor: "Persilja, kirveli, rakuuna, ruohosipuli – raikas yrttinen, suolaton",
+    suitableFor: ["kala","kana","nauta","possu","wok"],
+    ingredients: "Rypsiöljy, osittain kovetettu rypsiöljy, yrtit (persilja, kirveli, rakuuna, ruohosipuli), aromi (yrtti)",
+  },
+];
+
+let selected = new Set();
+let activeCat = '';
+
+function setCat(cat) {
+  activeCat = cat;
+  document.querySelectorAll('.cat-tab').forEach(t => t.classList.remove('active'));
+  const idx = ['','marinadi','oljy'].indexOf(cat);
+  document.querySelectorAll('.cat-tab')[idx].classList.add('active');
+  render();
+}
+
+function getFiltered() {
+  const q    = document.getElementById('search').value.toLowerCase();
+  const meat = document.getElementById('meatFilter').value;
+  return products.filter(p => {
+    const matchCat  = !activeCat || p.category === activeCat;
+    const matchQ    = !q || p.name.toLowerCase().includes(q) || p.flavor.toLowerCase().includes(q) || p.tagline.toLowerCase().includes(q) || p.ingredients.toLowerCase().includes(q);
+    const matchMeat = !meat || p.suitableFor.includes(meat);
+    return matchCat && matchQ && matchMeat;
+  });
+}
+
+function catLabel(cat) { return cat === 'oljy' ? 'Mausteöljy' : 'Marinadi'; }
+
+function meatTagsHTML(list, cls = 'meat-tag') {
+  return list.map(k => {
+    const m = MEATS[k];
+    return m ? `<span class="${cls}" style="background:${m.color}">${m.icon} ${m.label}</span>` : '';
+  }).join('');
+}
+
+function render() {
+  const items = getFiltered();
+  const grid  = document.getElementById('grid');
+  if (!items.length) {
+    grid.innerHTML = '<p class="no-results">Ei tuloksia – kokeile toista hakua.</p>';
+    updateCount();
+    return;
+  }
+  grid.innerHTML = items.map(p => {
+    const sel = selected.has(p.id);
+    return `
+    <article class="card${sel ? ' selected' : ''}" onclick="toggleCard(${p.id})">
+      <div class="card-check">${sel ? '✓' : ''}</div>
+      <div class="card-header" style="background:${p.color}">
+        <div class="card-cat-badge">${catLabel(p.category)}</div>
+        <div class="card-name">${p.name}</div>
+        <div class="card-tagline">${p.tagline}</div>
+      </div>
+      <div class="card-body">
+        <div class="card-flavor"><strong>Maku:</strong> ${p.flavor}</div>
+        <div class="meat-tags">${meatTagsHTML(p.suitableFor)}</div>
+        <div class="card-ingredients"><strong>Ainesosat:</strong> ${p.ingredients}</div>
+      </div>
+      <div class="card-footer">
+        <span class="badge lak">Laktoositon</span>
+        <span class="badge">Gluteeniton</span>
+        <span class="card-size">${p.size}</span>
+      </div>
+    </article>`;
+  }).join('');
+  updateCount();
+}
+
+function toggleCard(id) {
+  selected.has(id) ? selected.delete(id) : selected.add(id);
+  render();
+}
+
+function selectAll()  { getFiltered().forEach(p => selected.add(p.id)); render(); }
+function deselectAll() { selected.clear(); render(); }
+function updateCount() { document.getElementById('selCount').textContent = `${selected.size} valittu`; }
+
+
+function buildIngredientCards(items) {
+  const pages = [];
+  for (let i = 0; i < items.length; i += 6) {
+    const chunk = items.slice(i, i + 6);
+    const cards = chunk.map(p => `
+      <div class="icard">
+        <div class="icard-header" style="background:${p.color}">
+          <div class="icard-name">${p.name}</div>
+        </div>
+        <div class="icard-body">
+          <div class="icard-ingredients">${p.ingredients}</div>
+        </div>
+      </div>`).join('');
+    pages.push(`<div class="print-page" style="--card-count:${chunk.length}">${cards}</div>`);
+  }
+  return pages.join('');
+}
+
+function buildDisplayCards(items) {
+  const pages = [];
+  for (let i = 0; i < items.length; i += 6) {
+    const chunk = items.slice(i, i + 6);
+    const cards = chunk.map(p => `
+      <div class="scard">
+        <div class="scard-stripe" style="background:${p.color}"></div>
+        <div class="scard-body">
+          <div class="scard-name">${p.name}</div>
+          <div class="scard-tagline">${p.tagline}</div>
+        </div>
+        <div class="scard-footer">
+          <div style="display:flex;gap:3mm">
+            ${p.suitableFor.map(k => { const m = MEATS[k]; return m ? `<span class="scard-emoji">${m.icon}</span>` : ''; }).join('')}
+          </div>
+          <div class="scard-badges">
+            <span class="scard-badge">Laktoositon</span>
+            <span class="scard-badge">Gluteeniton</span>
+          </div>
+        </div>
+      </div>`).join('');
+    pages.push(`<div class="print-page" style="--card-count:${chunk.length}">${cards}</div>`);
+  }
+  return pages.join('');
+}
+
+function generatePDF() {
+  if (!selected.size) { alert('Valitse ensin vähintään yksi tuote.'); return; }
+
+  const items = products.filter(p => selected.has(p.id));
+  const printArea = document.getElementById('print-area');
+  printArea.innerHTML = buildIngredientCards(items) + buildDisplayCards(items);
+
+  window.onafterprint = () => { printArea.innerHTML = ''; };
+  window.print();
+}
+
+render();
+</script>
+</body>
+</html>
