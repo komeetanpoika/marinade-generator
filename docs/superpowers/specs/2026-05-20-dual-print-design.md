@@ -40,13 +40,13 @@ Purpose: customer-facing display card placed at the sales counter to identify wh
 - Hairline separator between cards: `1px solid rgba(255,255,255,.05)`
 
 **Card structure:**
-- **Top stripe**: 3px, product color
+- **Top stripe**: 5px, product color
 - **Body** (dark `#181818` background):
-  - Name: small caps, bold, full white, `letter-spacing: .06em`
-  - Tagline: italic, `rgba(255,255,255,.45)`
+  - Name: small caps, bold, full white, 28pt, `letter-spacing: .06em` — large enough to read from across the counter
+  - Tagline: italic, 13pt, `rgba(255,255,255,.45)`
 - **Footer strip** (same dark background, separated by `1px solid rgba(255,255,255,.08)`):
-  - Meat emojis: `filter: grayscale(1) brightness(1.8); opacity: .7`
-  - Allergy badges (Laktoositon, Gluteeniton): subtle pill style, `rgba(255,255,255,.12)` background
+  - Meat emojis: 20pt, `filter: grayscale(1) brightness(1.8); opacity: .7`
+  - Allergy badges (Laktoositon, Gluteeniton): 9pt, subtle pill style, `rgba(255,255,255,.12)` background
 
 **Omitted:** category badge, flavor text, ingredient list, size label, kapteeninkastikkeet.fi logo
 
@@ -60,6 +60,18 @@ cardHeight = pageHeight / cardsOnPage
 ```
 
 If `totalCards > 6`, group into pages of 6 and repeat. Each page's cards divide the height equally via `grid-template-rows: repeat(N, 1fr)` where N = cards on that page.
+
+## Print Color Fix
+
+Background colors are stripped by default in most browsers. The `@media print` block includes:
+
+```css
+* { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+```
+
+This forces colored headers and the dark card backgrounds to render correctly in PDF/print output.
+
+**Note:** Browser-generated headers/footers (URL, date, page number) cannot be removed via CSS. Users must uncheck "Headers and footers" in the browser print dialog.
 
 ## Implementation Notes
 
