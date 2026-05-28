@@ -1100,7 +1100,7 @@ function buildDisplayCards(items) {
           <div class="scard-tagline">${p.tagline}</div>
         </div>
         <div class="scard-footer">
-          <div class="scard-badges">${badges}</div>
+          <div class="scard-badges">${p.dietary.map(d => `<span class="scard-badge">${DIETARY_LABELS[d]}</span>`).join('')}</div>
         </div>
       </div>`;
     }).join('');
