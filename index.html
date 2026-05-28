@@ -124,7 +124,13 @@
       padding: 2px 7px; font-size: .68rem; font-weight: 600; letter-spacing: .3px;
     }
     .badge.lak { background: #e8f4fb; color: #1a6a9a; }
-    .card-size { margin-left: auto; font-size: .75rem; color: #999; font-weight: 600; }
+    .card-footer-right { margin-left: auto; display: flex; align-items: center; gap: 6px; }
+    .card-size { font-size: .75rem; color: #999; font-weight: 600; }
+    .brand-badge {
+      font-size: .62rem; font-weight: 700; padding: 2px 6px;
+      border-radius: 3px; color: #fff; letter-spacing: .3px;
+    }
+    .badge.suolaton { background: #f3f4f6; color: #6b7280; }
 
     .no-results { grid-column: 1/-1; text-align: center; color: #999; padding: 60px 0; font-size: 1.1rem; }
 
@@ -330,178 +336,215 @@ const MEATS = {
   wok:       { label: "Wok",       icon: "🥘", color: "#0f766e" },
 };
 
+const BRAND_LABELS = { kk: 'Kapteenin', mp: 'Maripaja' };
+const BRAND_COLORS = { kk: '#e8a020', mp: '#0d9488' };
+
+function dietaryBadgesHTML(dietary) {
+  return dietary.map(d => {
+    if (d === 'laktoositon') return '<span class="badge lak">Laktoositon</span>';
+    if (d === 'gluteeniton') return '<span class="badge">Gluteeniton</span>';
+    if (d === 'suolaton')    return '<span class="badge suolaton">Suolaton</span>';
+    return '';
+  }).join('');
+}
+
 const products = [
   // ── MARINADIT ──
   {
-    id: 1, category: "marinadi", name: "Appelsiinimarinadi", size: "10 kg", color: "#c2700a",
+    id: 1, brand: 'kk', category: "marinadi", name: "Appelsiinimarinadi", size: "10 kg", color: "#c2700a",
+    dietary: ['laktoositon','gluteeniton'],
     tagline: "Raikas ja luonnollinen appelsiinin maku!",
     flavor: "Raikas sitrus, appelsiini, mustapippuri, kirveli",
     suitableFor: ["kana","kala","possu","siivet","wok"],
     ingredients: "Vesi, appelsiinitäyte, appelsiinikuorirouhe, suola (4,3%), appelsiinimehu, sitruunamehu, mausteet (mustapippuri, kirveli), paprikarouhe, aromi, sakeuttamisaineet (E412, E415), väri (E100, E160c), säilöntäaineet (E202, E211)",
   },
   {
-    id: 2, category: "marinadi", name: "Fantasiamarinadi", size: "10 kg", color: "#b45309",
+    id: 2, brand: 'kk', category: "marinadi", name: "Fantasiamarinadi", size: "10 kg", color: "#b45309",
+    dietary: ['laktoositon','gluteeniton'],
     tagline: "Koko maustekaappi yhdessä marinadissa! Yrtit, chili ja sitruuna nousevat esiin.",
     flavor: "Yrtit, chili, sitruuna, monimuotoiset mausteet",
     suitableFor: ["kana","possu"],
     ingredients: "Vesi, rypsiöljy, tomaattikastike, sinappi, sitruunamehu, mausteet (paprika, sipuli, valkosipuli, mustapippuri, cayanne, chili, juustokumina, korianteri, curry, pomeranssi, kurkuma, viherpippuri, basilika, oregano, valkopippuri, laakerinlehti, rakuuna, kirveli, persilja), sokeri, omenaviinietikka, suola (3,2 %), ananasmehu, maltodekstriini, hiivauute, sakeutusaineet (E412, E415), sitruunahappo, säilöntäaineet (E202, E211)",
   },
   {
-    id: 3, category: "marinadi", name: "Habaneromarinadi", size: "10 kg", color: "#b91c1c",
+    id: 3, brand: 'kk', category: "marinadi", name: "Habaneromarinadi", size: "10 kg", color: "#b91c1c",
+    dietary: ['laktoositon','gluteeniton'],
     tagline: "Herkullinen ja oikeasti tulinen marinadi!",
     flavor: "Tulinen habanero, paprika, curry, chili",
     suitableFor: ["kana","nauta","possu","siivet"],
     ingredients: "Vesi, rypsiöljy, habaneromurska, sinappi, tomaattikastike, hunajaetikka, ananasmehu, mausteet (paprika, valkosipuli, sipuli, curry, korianteri, kurkuma, cayanne, neilikka, valkopippuri, laakerinlehti, kirveli, rakuuna, persilja, mustapippuri, viherpippuri, chili), sokeri, maltodekstriini, hiivauute, suola (4,7%), chilirouhe, sakeutusaineet (E412, E415), sitruunahappo, säilöntäaineet (E202, E211), väri (E160c), aromi",
   },
   {
-    id: 4, category: "marinadi", name: "Hunaja-Pippurimarinadi", size: "10 kg", color: "#b45309",
+    id: 4, brand: 'kk', category: "marinadi", name: "Hunaja-Pippurimarinadi", size: "10 kg", color: "#b45309",
+    dietary: ['laktoositon','gluteeniton'],
     tagline: "Pippuriseoksella maustettu ja hunajalla makeutettu voimakas marinadi.",
     flavor: "Hunaja, mustapippuri, sinappi, valkosipuli, curry",
     suitableFor: ["kana","possu","siivet"],
     ingredients: "Vesi, rypsiöljy, sinappi, ketsuppi, hunajaetikka, suola (2,8 %), soijakastike, mausteet (valkosipuli, paprika, curry, korianteri, mustapippuri, valkopippuri, laakerinlehti, kirveli, rakuuna, persilja, kurkuma, cayanne, neilikka, viherpippuri, chili), maltodekstriini, hiivauute, sokeri, säilöntäaineet (E202, E211), sakeuttamisaineet (E412, E415), sitruunahappo, paprikauute, aromi",
   },
   {
-    id: 5, category: "marinadi", name: "Hunaja-Valkosipulimarinadi", size: "10 kg", color: "#92400e",
+    id: 5, brand: 'kk', category: "marinadi", name: "Hunaja-Valkosipulimarinadi", size: "10 kg", color: "#92400e",
+    dietary: ['laktoositon','gluteeniton'],
     tagline: "Vahvasti valkosipulia sisältävä, hunajalla makeutettu marinadi",
     flavor: "Vahva valkosipuli, hunaja, curry, paprika, chili",
     suitableFor: ["kana","possu"],
     ingredients: "Vesi, rypsiöljy, sinappi, ketsuppi, hunajaetikka, suola (2,8 %), mausteet (valkosipuli, paprika, curry, korianteri, mustapippuri, valkopippuri, laakerinlehti, kirveli, rakuuna, persilja, kurkuma, cayanne, neilikka, viherpippuri, chili), maltodekstriini, hiivauute, sokeri, säilöntäaineet (E202, E211), sakeuttamisaineet (E412, E415), sitruunahappo, paprikauute, aromi",
   },
   {
-    id: 6, category: "marinadi", name: "Hunajainen Kalamarinadi", size: "10 kg", color: "#1d4ed8",
+    id: 6, brand: 'kk', category: "marinadi", name: "Hunajainen Kalamarinadi", size: "10 kg", color: "#1d4ed8",
+    dietary: ['laktoositon','gluteeniton'],
     tagline: "Hunajalla makeutettu sekä tilliä ja sitruunapippurilla maustettu marinadi.",
     flavor: "Hunaja, tilli, sitruunapippuri, paprika",
     suitableFor: ["kala"],
     ingredients: "Vesi, rypsiöljy, sinappi, hunajaetikka, ketsuppi, mausteet (mustapippuri, sipuli, tilli, ruohosipuli, paprika, curry, korianteri, kurkuma, cayanne, neilikka, valkopippuri, laakerinlehti, kirveli, rakuuna, persilja), suola (3,9%), sitruunamehu, chilikastike, maltodekstriini, hiivauute, sokeri, sakeuttamisaineet (E412, E415), säilöntäaineet (E202, E211), paprikauute, aromi",
   },
   {
-    id: 7, category: "marinadi", name: "Juhlamarinadi", size: "10 kg", color: "#1e293b",
+    id: 7, brand: 'kk', category: "marinadi", name: "Juhlamarinadi", size: "10 kg", color: "#1e293b",
+    dietary: ['laktoositon','gluteeniton'],
     tagline: "Tumma, täyteläinen ja maukas marinadi.",
     flavor: "Soija, valkosipuli, paprika, curry – tumma ja täyteläinen",
     suitableFor: ["lammas","nauta","possu","riista"],
     ingredients: "Rypsiöljy, soijakastike, vesi, sinappi, suola (4,5 %), mausteet (valkosipuli, paprika, curry, korianteri, kurkuma, cayanne, neilikka, valkopippuri, laakerinlehti, kirveli, rakuuna, persilja, mustapippuri, viherpippuri, chili), maltodekstriini, hiivauute, sokeri, sakeuttamisaineet (E412, E415), säilöntäaineet (E202, E211), paprikauute, sitruunahappo, aromi",
   },
   {
-    id: 8, category: "marinadi", name: "Kapteenin Kalamarinadi", size: "5 kg", color: "#1e40af",
+    id: 8, brand: 'kk', category: "marinadi", name: "Kapteenin Kalamarinadi", size: "5 kg", color: "#1e40af",
+    dietary: ['laktoositon','gluteeniton'],
     tagline: "Reilusti maustettu (mm. sitruunapippuri ja tilli) marinadi.",
     flavor: "Sitruunapippuri, tilli, sinappi, valkosipuli",
     suitableFor: ["kala"],
     ingredients: "Vesi, rypsiöljy, sinappi, ketsuppi, suola (4,3 %), mausteet (tilli, mustapippuri, sipuli, ruohosipuli, valkosipuli, paprika, curry, korianteri, kurkuma, cayanne, neilikka, valkopippuri, laakerinlehti, kirveli, rakuuna, persilja, viherpippuri, chili), sitruunamehu, chilikastike, maltodekstriini, hiivauute, sokeri, sakeuttamisaineet (E412, E415), sitruunahappo, säilöntäaineet (E202, E211), paprikauute, aromi",
   },
   {
-    id: 9, category: "marinadi", name: "Kapteenin Nautamarinadi", size: "10 kg", color: "#991b1b",
+    id: 9, brand: 'kk', category: "marinadi", name: "Kapteenin Nautamarinadi", size: "10 kg", color: "#991b1b",
+    dietary: ['laktoositon','gluteeniton'],
     tagline: "Mainio perusmarinadi naudalle",
     flavor: "Punaviini, punaviinietikka, paprika, curry, valkosipuli",
     suitableFor: ["nauta"],
     ingredients: "Vesi, ketsuppi, rypsiöljy, suola (5,0 %), punaviinietikka, punaviinitiiviste, mausteet (mustapippuri, kirveli, persilja, valkosipuli, cayanne, paprika, curry, korianteri, valkopippuri, kurkuma, neilikka, viherpippuri, laakerinlehti, rakuuna, chili), soijakastike, maltodekstriini, hiivauute, sokeri, sakeuttamisaineet (E412, E415), säilöntäaineet (E202, E211), sitruunahappo, paprikauute, aromi",
   },
   {
-    id: 10, category: "marinadi", name: "Kapteenin Possumarinadi", size: "10 kg", color: "#9d174d",
+    id: 10, brand: 'kk', category: "marinadi", name: "Kapteenin Possumarinadi", size: "10 kg", color: "#9d174d",
+    dietary: ['laktoositon','gluteeniton'],
     tagline: "Makeahko perusmarinadi possulle",
     flavor: "Makea, hunaja, paprika, curry, sinappi",
     suitableFor: ["possu"],
     ingredients: "Rypsiöljy, vesi, sinappi, hunajaetikka, ketsuppi, soijakastike, punaviinietikka, mausteet (paprika, curry, korianteri, valkosipuli, kurkuma, cayanne, neilikka, valkopippuri, laakerinlehti, kirveli, rakuuna, persilja, mustapippuri, viherpippuri, chili), suola (3,2 %), maltodekstriini, hiivauute, sokeri, sakeutusaineet (E412, E415), säilöntäaineet (E202, E211), sitruunahappo, paprikauute, aromi",
   },
   {
-    id: 11, category: "marinadi", name: "Kirkas Yrtti-Punaviinimarinadi", size: "10 kg", color: "#6b21a8",
+    id: 11, brand: 'kk', category: "marinadi", name: "Kirkas Yrtti-Punaviinimarinadi", size: "10 kg", color: "#6b21a8",
+    dietary: ['laktoositon','gluteeniton'],
     tagline: "Kirkas, öljytön marinadi.",
     flavor: "Punaviini 10%, yrtit, paprika, kirveli, kurkuma",
     suitableFor: ["nauta"],
     ingredients: "Vesi, tomaattikastike, punaviini (10%), hunajaetikka, suola (4,6 %), mausteet (paprika, mustapippuri, persilja, kirveli, curry, laakerinlehti, valkopippuri, korianteri, valkosipuli, kurkuma, cayanne, neilikka, rakuuna), maltodekstriini, hiivauute, sokeri, paprikarouhe, sakeutusaineet (E412, E415), paprikauute, säilöntäaineet (E202, E211), sitruunahappo",
   },
   {
-    id: 12, category: "marinadi", name: "Konjakki-Marinadi", size: "10 kg", color: "#78350f",
+    id: 12, brand: 'kk', category: "marinadi", name: "Konjakki-Marinadi", size: "10 kg", color: "#78350f",
+    dietary: ['laktoositon','gluteeniton'],
     tagline: "Hieno ja aromikas marinadi. Valmistuksessa käytetty aitoa konjakkia.",
     flavor: "Konjakkia 1,6%, paprika, pippuri, sinappi",
     suitableFor: ["kala","nauta","possu","riista"],
     ingredients: "Vesi, rypsiöljy, sinappi, ketsuppi, soijakastike, suola (3,8 %), siirappi, konjakki (1,6 %), mausteet (valkosipuli, paprika, mustapippuri, valkopippuri, viherpippuri, chili, curry, korianteri, kurkuma, cayanne, neilikka, laakerinlehti, kirveli, rakuuna, persilja), maltodekstriini, hiivauute, sokeri, sitruunahappo, säilöntäaineet (E202, E211), paprikauute, sakeuttamisaineet (E412, E415), aromi",
   },
   {
-    id: 13, category: "marinadi", name: "Makean Chilinen Marinadi", size: "10 kg", color: "#c2410c",
+    id: 13, brand: 'kk', category: "marinadi", name: "Makean Chilinen Marinadi", size: "10 kg", color: "#c2410c",
+    dietary: ['laktoositon','gluteeniton'],
     tagline: "Siiville kehitetty, ei lainkaan hapan marinadikastike. Herkullisen makea ja lempeä chilisyys sopii myös possun marinointiin.",
     flavor: "Makea, lempeä chili, paprika, chipotle",
     suitableFor: ["kana","possu","siivet"],
     ingredients: "Vesi, tomaattisose, sokeri, rypsiöljy, suola (3,9 %), tomaattijauhe, mausteet (paprika, chipotle, cayanne), sakeuttamisaineet (E412, E4215), sitruunahappo, säilöntäaineet (E202, E211), väri (E160c)",
   },
   {
-    id: 14, category: "marinadi", name: "Marinointi- ja Grillauskastike", size: "10 kg", color: "#166534",
+    id: 14, brand: 'kk', category: "marinadi", name: "Marinointi- ja Grillauskastike", size: "10 kg", color: "#166534",
+    dietary: ['laktoositon','gluteeniton'],
     tagline: "Suosittu perusmarinadi",
     flavor: "Paprika, curry, valkosipuli, sinappi, soija",
     suitableFor: ["nauta","possu"],
     ingredients: "Vesi, rypsiöljy, sinappi, soijakastike, ketsuppi, suola (3,3 %), mausteet (paprika, curry, korianteri, valkosipuli, kurkuma, cayanne, neilikka, valkopippuri, laakerinlehti, kirveli, rakuuna, persilja, mustapippuri, viherpippuri, chili), maltodekstriini, hiivauute, sokeri, sakeuttamisaineet (E412, E415), sitruunahappo, säilöntäaineet (E202, E211), paprikauute, aromi",
   },
   {
-    id: 15, category: "marinadi", name: "Meksikaanin Marinadi", size: "10 kg", color: "#b45309",
+    id: 15, brand: 'kk', category: "marinadi", name: "Meksikaanin Marinadi", size: "10 kg", color: "#b45309",
+    dietary: ['laktoositon','gluteeniton'],
     tagline: "Tässä marinadissa on makua! Yhdistelmä Meksikon yrttejä, chiliä ja hapokkuutta!",
     flavor: "Chili, paprika, valkosipuli, oregano, kumina, cayanne",
     suitableFor: ["kana","possu","siivet"],
     ingredients: "Vesi, rypsiöljy, sokeri, mausteet (chili, paprika, valkosipuli, mustapippuri, oregano), suola (4,0 %), ketsuppi, sakeutusaineet (E412, E415), säilöntäaineet (E202, E211), sorbitoli, sitruunahappo, natriumsitraatti, natriumglutamaatti, aromit (paprika, valkosipuli, cayanne, muskottipähkinä, korianteri, kumina)",
   },
   {
-    id: 16, category: "marinadi", name: "Paholaisen Marinadi", size: "10 kg", color: "#be123c",
+    id: 16, brand: 'kk', category: "marinadi", name: "Paholaisen Marinadi", size: "10 kg", color: "#be123c",
+    dietary: ['laktoositon','gluteeniton'],
     tagline: "Makea ja lempeä, saanut inspiraationsa paljon paprikaa sisältävästä hillosta. Tässäkään ei ole paprikaa ja makeutta säästelty!",
     flavor: "Makea paprika, habanero, punaviinietikka",
     suitableFor: ["kana","kala","possu","siivet","wok"],
     ingredients: "Vesi, tomaattikastike, sokeri, punaviinietikka, paprikarouhe, mausteet (paprika, mustapippuri, persilja, kirveli, curry, laakerinlehti, valkopippuri, korianteri, valkosipuli, kurkuma, cayanne, neilikka, rakuuna), maltodekstriini, hiivauute, sakeutusaineet (E412, E415), säilöntäaineet (E202, E211), sitruunamehu, habaneropyre, suola (4,2 %), väri (E160c)",
   },
   {
-    id: 17, category: "marinadi", name: "Panimomestarin Marinadi", size: "10 kg", color: "#713f12",
+    id: 17, brand: 'kk', category: "marinadi", name: "Panimomestarin Marinadi", size: "10 kg", color: "#713f12",
+    dietary: ['laktoositon','gluteeniton'],
     tagline: "Melko tumma, maltaalla ja paahdetulla sipulilla maustettu hieno marinadi.",
     flavor: "Mallasuute, paahdettu sipuli, pippuri, paprika",
     suitableFor: ["nauta","possu"],
     ingredients: "Vesi, rypsiöljy, sinappi, soijakastike, ketsuppi, mallasuute, suola (3,8 %), mausteet (mustapippuri, paprika, curry, korianteri, valkosipuli, kurkuma, cayanne, neilikka, valkopippuri, laakerinlehti, kirveli, rakuuna, persilja, viherpippuri, chili), paahdettu sipuli, maltodekstriini, hiivauute, sokeri, sakeuttamisaineet (E412, E415), sitruunahappo, säilöntäaineet (E202, E211), paprikauute, aromi",
   },
   {
-    id: 18, category: "marinadi", name: "Pekoni-Sipulimarinadi", size: "10 kg", color: "#7c2d12",
+    id: 18, brand: 'kk', category: "marinadi", name: "Pekoni-Sipulimarinadi", size: "10 kg", color: "#7c2d12",
+    dietary: ['laktoositon','gluteeniton'],
     tagline: "Aidolla pekonilla ja runsaalla määrällä sipulia maustettu marinadi.",
     flavor: "Pekoni, paahdettu sipuli, valkosipuli, mustapippuri",
     suitableFor: ["kala","kana","nauta","possu"],
     ingredients: "Vesi, rypsiöljy, sinappi, ketsuppi, hunajaetikka, suola (3,4%), paahdettu sipuli, mausteet (valkosipuli, mustapippuri), pekoni, aromit (pekoni), sakeutusaineet (E412, E415), sitruunahappo, rasvajauhe, säilöntäaineet (E202, E211), paprikauute",
   },
   {
-    id: 19, category: "marinadi", name: "Pestomarinadi", size: "10 kg", color: "#166534",
+    id: 19, brand: 'kk', category: "marinadi", name: "Pestomarinadi", size: "10 kg", color: "#166534",
+    dietary: ['laktoositon','gluteeniton'],
     tagline: "Yrttinen ja oikeasti pestolta maistuva marinadi!",
     flavor: "Basilika, valkosipuli, mustapippuri, punaviinietikka",
     suitableFor: ["kana","kala","possu"],
     ingredients: "Vesi, rypsiöljy, sokeri, punaviinietikka, suola (3,9 %), mausteet (basilika, valkosipuli, mustapippuri), sakeutusaineet (E412, E415), säilöntäaineet (E202, E211), väri (E140), aromi",
   },
   {
-    id: 20, category: "marinadi", name: "Punaviini-Pippurimarinadi", size: "10 kg", color: "#6b21a8",
+    id: 20, brand: 'kk', category: "marinadi", name: "Punaviini-Pippurimarinadi", size: "10 kg", color: "#6b21a8",
+    dietary: ['laktoositon','gluteeniton'],
     tagline: "Pippurilla ja aidolla punaviinillä maustettu marinadi.",
     flavor: "Punaviini 10%, mustapippuri, viherpippuri, paprika",
     suitableFor: ["nauta","riista"],
     ingredients: "Vesi, ketsuppi, rypsiöljy, punaviini (10 %), suola (4,4 %), mausteet (mustapippuri, viherpippuri, paprika, curry, korianteri, valkosipuli, kurkuma, cayanne, neilikka, valkopippuri, laakerinlehti, kirveli, rakuuna, persilja, chili), punaviinietikka, maltodekstriini, hiivauute, sokeri, sakeuttamisaineet (E412, E415), säilöntäaineet (E202, E211), sitruunahappo, paprikauute, aromi",
   },
   {
-    id: 21, category: "marinadi", name: "Sitruuna-Tilli-Kalamarinadi", size: "10 kg", color: "#0369a1",
+    id: 21, brand: 'kk', category: "marinadi", name: "Sitruuna-Tilli-Kalamarinadi", size: "10 kg", color: "#0369a1",
+    dietary: ['laktoositon','gluteeniton'],
     tagline: "Tuttu suosittu marinadimme. Sopii kalalle kuin kalalle.",
     flavor: "Sitruuna, tilli, paprika, kurkuma",
     suitableFor: ["kala"],
     ingredients: "Vesi, rypsiöljy, dekstroosi, sokeri, maltodekstriini, suola (3,9 %), mausteet (tilli, kurkuma, paprika), sakeuttamisaineet (E412, E4215), säilöntäaineet (E202, E211), sitruunahappo, sitruunajauhe, aromit, paprikauute",
   },
   {
-    id: 22, category: "marinadi", name: "Soija-Valkosipulimarinadi", size: "10 kg", color: "#1e293b",
+    id: 22, brand: 'kk', category: "marinadi", name: "Soija-Valkosipulimarinadi", size: "10 kg", color: "#1e293b",
+    dietary: ['laktoositon','gluteeniton'],
     tagline: "Tumma, vahvasti valkosipulilla maustettu, makea marinadi",
     flavor: "Soija, valkosipuli, siirappi, curry – tumma ja intensiivinen",
     suitableFor: ["lammas","nauta","possu"],
     ingredients: "Rypsiöljy, vesi, soijakastike, sinappi, siirappi, suola (4,1 %), mausteet (valkosipuli, paprika, curry, korianteri, kurkuma, cayanne, neilikka, valkopippuri, laakerinlehti, kirveli, rakuuna, persilja, mustapippuri, viherpippuri, chili), maltodekstriini, hiivauute, sokeri, säilöntäaineet (E202, E211), sakeuttamisaineet (E412, E415), sitruunahappo, paprikauute, aromi",
   },
   {
-    id: 23, category: "marinadi", name: "Soosikeisarin Marinadi", size: "10 kg", color: "#c2410c",
+    id: 23, brand: 'kk', category: "marinadi", name: "Soosikeisarin Marinadi", size: "10 kg", color: "#c2410c",
+    dietary: ['laktoositon','gluteeniton'],
     tagline: "Itse 'Kapteenin' eli firman päällepäsmärin oma marinadi: Buffalo wings -kastikkeen maut marinadissa! Mukavasti chiliä ja hitunen homejuuston aromia.",
     flavor: "Chili, homejuuston aromi, omenaviinietikka, makea",
     suitableFor: ["kana","possu","siivet"],
     ingredients: "Vesi, rypsiöljy, omenaviinietikka, chilikastike, sokeri, suola (4,3 %), sakeutusaineet (E412, E415), säilöntäaineet (E202, E211), aromi, väri (E160c)",
   },
   {
-    id: 24, category: "marinadi", name: "Tumma BBQ-Marinadi", size: "10 kg", color: "#111827",
+    id: 24, brand: 'kk', category: "marinadi", name: "Tumma BBQ-Marinadi", size: "10 kg", color: "#111827",
+    dietary: ['laktoositon','gluteeniton'],
     tagline: "Kevyt, erittäin tumma, savuaromilla maustettu, makeahko marinadi",
     flavor: "Savu, makea, tomaatti, paprika, sipuli, valkosipuli",
     suitableFor: ["kana","nauta","possu"],
     ingredients: "Vesi, sokeri, tomaattijauhe, punaviinietikka, suola (3,9%), mausteet (paprika, chili, sipuli, valkosipuli), sokerikulööri, sakeutusaine (E415, E412), säilöntäaineet (E211, E202), aromi",
   },
   {
-    id: 25, category: "marinadi", name: "Viski-Pippuri by Hard Kokki", size: "10 kg", color: "#78350f",
+    id: 25, brand: 'kk', category: "marinadi", name: "Viski-Pippuri by Hard Kokki", size: "10 kg", color: "#78350f",
+    dietary: ['laktoositon','gluteeniton'],
     tagline: "Aivan käsittämättömän hyvä uutuusmarinadi!",
     flavor: "Viski 2%, mustapippuri, balsamico, chipotle, yrtit",
     suitableFor: ["possu"],
@@ -510,112 +553,128 @@ const products = [
 
   // ── MAUSTEÖLJYT ──
   {
-    id: 26, category: "oljy", name: "Amiraalin Mausteöljy", size: "9 kg", color: "#0f766e",
+    id: 26, brand: 'kk', category: "oljy", name: "Amiraalin Mausteöljy", size: "9 kg", color: "#0f766e",
+    dietary: ['laktoositon','gluteeniton'],
     tagline: "Hienostunut ja sopivan erikoinen mausteöljy.",
     flavor: "Fenkoli, anis, rakuuna, kurkuma",
     suitableFor: ["kana","kala","nauta","possu","wok"],
     ingredients: "Rypsiöljy, osittain kovetettu rypsiöljy, sokeri, suola (6,1%), mausteet (fenkoli, rakuuna, anis, kurkuma)",
   },
   {
-    id: 27, category: "oljy", name: "Balsamico-Mausteöljy", size: "9 kg", color: "#4c1d95",
+    id: 27, brand: 'kk', category: "oljy", name: "Balsamico-Mausteöljy", size: "9 kg", color: "#4c1d95",
+    dietary: ['laktoositon','gluteeniton'],
     tagline: "Hienostunut Balsamico.",
     flavor: "Balsamico 12%, mustapippuri, minttu, rakuuna",
     suitableFor: ["nauta","riista","possu"],
     ingredients: "Rypsiöljy, osittain kovetettu rypsiöljy, balsamico (12 %), suola (7,5%), mausteet (mustapippuri, minttu, rakuuna, persilja, kirveli, ruohosipuli)",
   },
   {
-    id: 28, category: "oljy", name: "Chiliöljy", size: "9 kg", color: "#b91c1c",
+    id: 28, brand: 'kk', category: "oljy", name: "Chiliöljy", size: "9 kg", color: "#b91c1c",
+    dietary: ['laktoositon','gluteeniton'],
     tagline: "Suosittu tulinen öljymme on oikeasti tulinen!",
     flavor: "Habanero, paprika, cayanne – aidosti tulinen",
     suitableFor: ["kana","nauta","possu","siivet","wok"],
     ingredients: "Rypsiöljy, osittain kovetettu rypsiöljy, habaneromurska, paprikarouhe, sokeri, omenaviinietikka, mausteet (paprika, cayanne)",
   },
   {
-    id: 29, category: "oljy", name: "Chimichurri-Mausteöljy", size: "9 kg", color: "#166534",
+    id: 29, brand: 'kk', category: "oljy", name: "Chimichurri-Mausteöljy", size: "9 kg", color: "#166534",
+    dietary: ['laktoositon','gluteeniton'],
     tagline: "Etelä-Amerikkalainen suosikkimauste lihalle nyt mausteöljynä!",
     flavor: "Hapokas ja yrttinen: persilja, korianteri, oregano, chili, valkosipuli",
     suitableFor: ["kana","nauta","possu","wok"],
     ingredients: "Rypsiöljy, osittain kovetettu rypsiöljy, punaviinietikka, ruokosokeri, suola (5,9%), paprikarouhe, mausteet (persilja, ruohosipuli, korianteri, oregano, rakuuna), chilirouhe, valkosipulirouhe, väri (E140)",
   },
   {
-    id: 30, category: "oljy", name: "Grilliöljy", size: "9 kg", color: "#92400e",
+    id: 30, brand: 'kk', category: "oljy", name: "Grilliöljy", size: "9 kg", color: "#92400e",
+    dietary: ['laktoositon','gluteeniton'],
     tagline: "Amerikkalaistyyppinen BBQ-mausteinen pintamausteöljy",
     flavor: "BBQ, sinapinsiemen, paprika, cayanne, mustapippuri – suolaton",
     suitableFor: ["kala","kana","nauta","possu","wok"],
     ingredients: "Rypsiöljy, osittain kovetettu rypsiöljy, mausteet (mustapippuri, sinapinsiemen, paprika, cayanne), paprikarouhe, aromi (BBQ)",
   },
   {
-    id: 31, category: "oljy", name: "Janne Katajan Mausteöljy", size: "9 kg", color: "#b45309",
+    id: 31, brand: 'kk', category: "oljy", name: "Janne Katajan Mausteöljy", size: "9 kg", color: "#b45309",
+    dietary: ['laktoositon','gluteeniton'],
     tagline: "Aivan tolkuttoman hyvä mausteöljy!",
     flavor: "Sipuli, valkosipuli, chili, basilika, mustapippuri, kirveli, hunajaetikka",
     suitableFor: ["kana","lammas","nauta","possu","riista","wok"],
     ingredients: "Rypsiöljy, osittain kovetettu rypsiöljy, hunajaetikka, mausteet (sipuli, valkosipuli, chili, basilika, ruohosipuli, mustapippuri, maustepippuri, kirveli, persilja), suola (5,5%)",
   },
   {
-    id: 32, category: "oljy", name: "Karibian Jerk BBQ -öljy", size: "9 kg", color: "#c2410c",
+    id: 32, brand: 'kk', category: "oljy", name: "Karibian Jerk BBQ -öljy", size: "9 kg", color: "#c2410c",
+    dietary: ['laktoositon','gluteeniton'],
     tagline: "Karibian maut: valkosipuli, inkivääri, chili, kaneli, timjami. Älä pelästy! Kaneli sopii muuhunkin kuin pullaan.",
     flavor: "Valkosipuli, inkivääri, chili, kaneli, timjami, sitruuna, omenaviinietikka",
     suitableFor: ["kala","kana","lammas","nauta","possu","wok"],
     ingredients: "Rypsiöljy, osittain kovetettu rypsiöljy, soijakastike, mausteet (valkosipuli, inkivääri, chili, kaneli, timjami), omenaviinietikka, sokeri, suola (6,1%), sitruuna",
   },
   {
-    id: 33, category: "oljy", name: "Lihamausteöljy", size: "9 kg", color: "#7c2d12",
+    id: 33, brand: 'kk', category: "oljy", name: "Lihamausteöljy", size: "9 kg", color: "#7c2d12",
+    dietary: ['laktoositon','gluteeniton'],
     tagline: "Grillausmausteinen öljy",
     flavor: "Valkosipuli, paprika, curry, mustapippuri, korianteri, BBQ-aromi",
     suitableFor: ["kana","nauta","possu","siivet","wok"],
     ingredients: "Rypsiöljy, osittain kovetettu rypsiöljy, suola (3,7 %), mausteet (valkosipuli, paprika, curry, mustapippuri, valkopippuri, korianteri, kurkuma, cayanne, neilikka, laakerinlehti, kirveli, rakuuna, persilja, viherpippuri, chili), maltodekstriini, hiivauute, sokeri, sitruunahappo, paprikauute, aromit (BBQ, kurkuma)",
   },
   {
-    id: 34, category: "oljy", name: "Löytöretken Mausteöljy", size: "9 kg", color: "#1e40af",
+    id: 34, brand: 'kk', category: "oljy", name: "Löytöretken Mausteöljy", size: "9 kg", color: "#1e40af",
+    dietary: ['laktoositon','gluteeniton'],
     tagline: "Eurooppalaisille tutut yrtit yhdistettynä maailman mausteisiin. Kaikkien lihojen ja kanan maustamiseen!",
     flavor: "Valkosipuli, paprika, persilja, rakuuna, curry, mustapippuri, korianteri",
     suitableFor: ["nauta","possu","kana","siivet","wok"],
     ingredients: "Rypsiöljy, osittain kovetettu rypsiöljy, maustesekoitus (valkosipuli, paprika, persilja, rakuuna, kirveli, ruohosipuli, kurkuma, mustapippuri, curry, valkopippuri, korianteri, cayanne, neilikka, viherpippuri, laakerinlehti, chili), chili- ja paprikajauhe, suola (3,4%), sokeri, maltodekstriini, hiivauute, sitruunahappo, aromit",
   },
   {
-    id: 35, category: "oljy", name: "Minttuöljy", size: "9 kg", color: "#065f46",
+    id: 35, brand: 'kk', category: "oljy", name: "Minttuöljy", size: "9 kg", color: "#065f46",
+    dietary: ['laktoositon','gluteeniton'],
     tagline: "Sopivasti mintun makuinen öljy lampaalle ja muille vahvoille lihoille.",
     flavor: "Minttu, mustapippuri, valkosipuli, kurkuma – suolaton",
     suitableFor: ["lammas","riista"],
     ingredients: "Rypsiöljy, osittain kovetettu rypsiöljy, mausteet (minttu, mustapippuri, valkosipuli), sokeri, aromi (minttu), kurkumauute",
   },
   {
-    id: 36, category: "oljy", name: "Punaviiniöljy", size: "9 kg", color: "#6b21a8",
+    id: 36, brand: 'kk', category: "oljy", name: "Punaviiniöljy", size: "9 kg", color: "#6b21a8",
+    dietary: ['laktoositon','gluteeniton'],
     tagline: "Täyteläinen punaviiniöljy maustaa erityisen hyvin naudan ja riistan.",
     flavor: "Punaviini 12%, punaviinietikka, paprika, mustapippuri, persilja, valkosipuli",
     suitableFor: ["nauta","riista"],
     ingredients: "Rypsiöljy, osittain kovetettu rypsiöljy, punaviini (12%), mausteet (paprika, mustapippuri, persilja, ruohosipuli, kirveli, rakuuna, cayanne, valkosipuli), suola (4,2%), sokeri, punaviinietikka, paprikarouhe (punainen ja vihreä), chilirouhe, aromi",
   },
   {
-    id: 37, category: "oljy", name: "Rosmariiniöljy", size: "9 kg", color: "#166534",
+    id: 37, brand: 'kk', category: "oljy", name: "Rosmariiniöljy", size: "9 kg", color: "#166534",
+    dietary: ['laktoositon','gluteeniton'],
     tagline: "Hieno rosmariiniyrttinen öljy. Sopii esimerkiksi lampaalle, naudalle ja kanalle.",
     flavor: "Rosmariini, valkosipuli, sipuli, mustapippuri, timjami",
     suitableFor: ["lammas","nauta","kana","possu","riista"],
     ingredients: "Rypsiöljy, osittain kovetettu rypsiöljy, soijakastike, mausteet (rosmariini, valkosipuli, sipuli, mustapippuri, timjami), sokeri, suola (6,2 %)",
   },
   {
-    id: 38, category: "oljy", name: "Savu-Paprikaöljy", size: "9 kg", color: "#7c2d12",
+    id: 38, brand: 'kk', category: "oljy", name: "Savu-Paprikaöljy", size: "9 kg", color: "#7c2d12",
+    dietary: ['laktoositon','gluteeniton'],
     tagline: "Savuinen ja maistuva, kaikelle lihalle",
     flavor: "Savuinen paprika, cayanne, valkosipuli, chili, mustapippuri",
     suitableFor: ["kana","nauta","possu","siivet","wok"],
     ingredients: "Rypsiöljy, osittain kovetettu rypsiöljy, suola (4,6 %), mausteet (paprika, mustapippuri, cayanne, valkosipuli), ruokosokeri, paprikarouhe (punainen ja vihreä), chilirouhe, aromi",
   },
   {
-    id: 39, category: "oljy", name: "Turkinpippuriöljy", size: "9 kg", color: "#92400e",
+    id: 39, brand: 'kk', category: "oljy", name: "Turkinpippuriöljy", size: "9 kg", color: "#92400e",
+    dietary: ['laktoositon','gluteeniton'],
     tagline: "Makeahko turkinpippurikaramellinen grillausöljy kaikille lihoille",
     flavor: "Makea, karamellimainen, turkinpippuri, paprika, lakritsin aromi",
     suitableFor: ["kana","nauta","possu","riista","siivet","wok"],
     ingredients: "Rypsiöljy, osittain kovetettu rypsiöljy, siirappi, mausteet (mustapippuri, paprika, cayanne), suola (4%), aromi (lakritsi)",
   },
   {
-    id: 40, category: "oljy", name: "Valkosipuli-Paprikaöljy", size: "9 kg", color: "#b45309",
+    id: 40, brand: 'kk', category: "oljy", name: "Valkosipuli-Paprikaöljy", size: "9 kg", color: "#b45309",
+    dietary: ['laktoositon','gluteeniton'],
     tagline: "Mausteena reilusti valkosipulia",
     flavor: "Valkosipulirouhe, paprikarouhe – reilusti valkosipulia, suolaton",
     suitableFor: ["kana","kala","nauta","possu","wok"],
     ingredients: "Rypsiöljy, osittain kovetettu rypsiöljy, valkosipulirouhe (+ vesi, omenaviinietikka), sokeri, paprikarouhe",
   },
   {
-    id: 41, category: "oljy", name: "Yrttiöljy", size: "9 kg", color: "#166534",
+    id: 41, brand: 'kk', category: "oljy", name: "Yrttiöljy", size: "9 kg", color: "#166534",
+    dietary: ['laktoositon','gluteeniton'],
     tagline: "Sisältää runsaasti yrttejä ja yrttiaromia.",
     flavor: "Persilja, kirveli, rakuuna, ruohosipuli – raikas yrttinen, suolaton",
     suitableFor: ["kala","kana","nauta","possu","wok"],
@@ -678,9 +737,11 @@ function render() {
         <div class="card-ingredients"><strong>Ainesosat:</strong> ${p.ingredients}</div>
       </div>
       <div class="card-footer">
-        <span class="badge lak">Laktoositon</span>
-        <span class="badge">Gluteeniton</span>
-        <span class="card-size">${p.size}</span>
+        ${dietaryBadgesHTML(p.dietary)}
+        <div class="card-footer-right">
+          <span class="brand-badge" style="background:${BRAND_COLORS[p.brand]}">${BRAND_LABELS[p.brand]}</span>
+          <span class="card-size">${p.size}</span>
+        </div>
       </div>
     </article>`;
   }).join('');
