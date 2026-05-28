@@ -51,6 +51,16 @@
     .cat-tab.active { background: #e8a020; border-color: #e8a020; color: #1a2535; }
     .cat-tab:hover:not(.active) { border-color: rgba(255,255,255,.6); color: #fff; }
 
+    .brand-tabs { display: flex; gap: 4px; }
+    .brand-tab {
+      padding: 6px 12px; border: 1.5px solid rgba(255,255,255,.25);
+      border-radius: 6px; font-size: .82rem; font-weight: 600;
+      cursor: pointer; background: transparent; color: rgba(255,255,255,.7);
+      transition: all .15s;
+    }
+    .brand-tab.active { background: #0d9488; border-color: #0d9488; color: #fff; }
+    .brand-tab:hover:not(.active) { border-color: rgba(255,255,255,.6); color: #fff; }
+
     .btn {
       padding: 7px 14px; border: none; border-radius: 6px;
       font-size: .85rem; font-weight: 600; cursor: pointer;
@@ -273,12 +283,18 @@
 <body>
 
 <header>
-  <h1>Kapteenin <span>Kastikkeet</span></h1>
+  <h1>Marinadi<span>kortit</span></h1>
   <div class="controls">
+    <div class="brand-tabs">
+      <button class="brand-tab active" onclick="setBrand('')">Kaikki</button>
+      <button class="brand-tab" onclick="setBrand('kk')">Kapteenin Kastikkeet</button>
+      <button class="brand-tab" onclick="setBrand('mp')">Maripaja</button>
+    </div>
     <div class="cat-tabs">
       <button class="cat-tab active" onclick="setCat('')">Kaikki</button>
       <button class="cat-tab" onclick="setCat('marinadi')">Marinadit</button>
       <button class="cat-tab" onclick="setCat('oljy')">Mausteöljyt</button>
+      <button class="cat-tab" onclick="setCat('rub')">Rubit</button>
     </div>
     <input type="search" id="search" placeholder="Hae tuotteita…" oninput="render()">
     <select id="meatFilter" onchange="render()">
@@ -684,12 +700,21 @@ const products = [
 
 let selected = new Set();
 let activeCat = '';
+let activeBrand = '';
 
 function setCat(cat) {
   activeCat = cat;
   document.querySelectorAll('.cat-tab').forEach(t => t.classList.remove('active'));
-  const idx = ['','marinadi','oljy'].indexOf(cat);
+  const idx = ['','marinadi','oljy','rub'].indexOf(cat);
   document.querySelectorAll('.cat-tab')[idx].classList.add('active');
+  render();
+}
+
+function setBrand(brand) {
+  activeBrand = brand;
+  document.querySelectorAll('.brand-tab').forEach(t => t.classList.remove('active'));
+  const idx = ['','kk','mp'].indexOf(brand);
+  document.querySelectorAll('.brand-tab')[idx].classList.add('active');
   render();
 }
 
@@ -697,14 +722,19 @@ function getFiltered() {
   const q    = document.getElementById('search').value.toLowerCase();
   const meat = document.getElementById('meatFilter').value;
   return products.filter(p => {
-    const matchCat  = !activeCat || p.category === activeCat;
-    const matchQ    = !q || p.name.toLowerCase().includes(q) || p.flavor.toLowerCase().includes(q) || p.tagline.toLowerCase().includes(q) || p.ingredients.toLowerCase().includes(q);
-    const matchMeat = !meat || p.suitableFor.includes(meat);
-    return matchCat && matchQ && matchMeat;
+    const matchBrand = !activeBrand || p.brand === activeBrand;
+    const matchCat   = !activeCat   || p.category === activeCat;
+    const matchQ     = !q || p.name.toLowerCase().includes(q) || p.flavor.toLowerCase().includes(q) || p.tagline.toLowerCase().includes(q) || p.ingredients.toLowerCase().includes(q);
+    const matchMeat  = !meat || p.suitableFor.includes(meat);
+    return matchBrand && matchCat && matchQ && matchMeat;
   });
 }
 
-function catLabel(cat) { return cat === 'oljy' ? 'Mausteöljy' : 'Marinadi'; }
+function catLabel(cat) {
+  if (cat === 'oljy') return 'Mausteöljy';
+  if (cat === 'rub')  return 'Rub';
+  return 'Marinadi';
+}
 
 function meatTagsHTML(list, cls = 'meat-tag') {
   return list.map(k => {
